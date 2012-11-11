@@ -28,5 +28,6 @@ void toggle_leds(void);
 #define NROW  18
 #define NCOL  8
 #define NKEY  144
+#define NFUN  8
 
 #endif

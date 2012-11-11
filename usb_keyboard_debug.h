@@ -18,6 +18,7 @@ int8_t usb_debug_putchar(uint8_t c);	// transmit a character
 void usb_debug_flush_output(void);	// immediately transmit any buffered output
 #define USB_DEBUG_HID
 
+//Modifiers
 #define KEY_CTRL        0x0101
 #define KEY_SHIFT       0x0102
 #define KEY_ALT         0x0104
@@ -31,6 +32,21 @@ void usb_debug_flush_output(void);	// immediately transmit any buffered output
 #define KEY_RIGHT_ALT   0x0140
 #define KEY_RIGHT_GUI   0x0180
 
+//Function Layer Controls
+#define KEY_FN_TOGGLE   0x0200 // Press to toggle between layer 0/1
+#define KEY_FN_HOLD     0x0201 // Hold for layer 1 release for 0
+
+#define KEY_FN_SWITCH   0x0202 // Mostly like FN_HOLD, but sends you to layer 8 
+#define KEY_FN_0		0x0210 // when held, and your previous layer when released.
+#define KEY_FN_1		0x0211 // Combine with KEY_FN# to switch to any layer.
+#define KEY_FN_2		0x0212
+#define KEY_FN_3		0x0213
+#define KEY_FN_4		0x0214
+#define KEY_FN_5		0x0215
+#define KEY_FN_6		0x0216
+#define KEY_FN_7		0x0217
+
+//Regular Keys
 #define KEY_RESERVED1    0-3
 
 #define KEY_A            4

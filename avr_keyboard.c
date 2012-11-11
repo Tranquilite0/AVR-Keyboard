@@ -52,6 +52,19 @@ uint16_t queue[7] = {300,300,300,300,300,300,300};
 uint8_t mod_keys = 0;
 
 extern const uint16_t layer0[];
+extern const uint16_t layer1[];
+extern const uint16_t layer2[];
+extern const uint16_t layer3[];
+extern const uint16_t layer4[];
+extern const uint16_t layer5[];
+extern const uint16_t layer6[];
+extern const uint16_t layer7[];
+extern const uint16_t layer8[];
+/* Holds pointers to all of the layout arrays*/
+uint16_t *const layers[NFUN+1] = { layer0, layer1, layer2, layer3, layer4, layer5, layer6, layer7, layer8 };
+uint8_t current_layer = 0;
+uint8_t previous_layer = 0;
+
 KEY * layout = (KEY *)(layer0);
 STATUS key_status[NKEY];
 
@@ -66,6 +79,7 @@ void poll(void);
 void key_press(uint16_t key);
 void key_release(uint16_t key);
 void setup_io_pins(void);
+void select_layer(bool on_release, uint16_t key);
 
 /* Check for keys ready to be released, and 
    advance the bouncer counter on all keys. */
@@ -140,8 +154,10 @@ void key_press(uint16_t key) {
   uint8_t i;
   key_status[key].pressed = true;
   key_status[key].release = 0x00;
-  if(layout[key].type)
+  if(layout[key].type == 0x01)
     mod_keys |= layout[key].value;
+  else if(layout[key].type == 0x02)
+    select_layer(0, key);
   else {
     for(i = 5; i > 0; i--) queue[i] = queue[i-1];
     queue[0] = key;
@@ -154,8 +170,10 @@ void key_release(uint16_t key) {
   uint8_t i;
   key_status[key].pressed = false;
   key_status[key].release = 0x00;
-  if(layout[key].type)
+  if(layout[key].type == 0x01)
     mod_keys &= ~layout[key].value;
+  else if(layout[key].type == 0x02)
+    select_layer(1, key);
   else {
     for(i = 0; i < 6; i++) 
       if(queue[i]==key)
@@ -185,4 +203,46 @@ void init(void) {
     key_status[key].release = 0x00;
   }
   sei();  // Enable interrupts
+}
+
+void select_layer(bool on_release, uint16_t key) {
+	switch (layout[key].value){
+		case 0: //Toggle-type
+			if (!on_release){
+				previous_layer = current_layer;
+				current_layer = !current_layer;
+				layout = (KEY *)layers[current_layer];
+				usb_keyboard_press(0,0); //Prevents stuck keys when switching layers
+			}
+		break;
+		case 1: //Hold-type
+			previous_layer = current_layer;
+			if (on_release){
+				current_layer = 0;
+				layout = (KEY *)layers[current_layer];
+			}
+			else{
+				current_layer = 1;
+				layout = (KEY *)layers[current_layer];
+			}
+			usb_keyboard_press(0,0);
+		break;
+		case 2: //Switch-type
+			if (on_release){
+				current_layer = previous_layer;
+				layout = (KEY *)layers[current_layer];
+			}
+			else{
+				previous_layer = current_layer;
+				current_layer = 8;
+				layout = (KEY *)layers[current_layer];
+			}
+			usb_keyboard_press(0,0);
+		break;
+		default: //KEY_FUN_# was pressed
+			previous_layer = current_layer;
+			current_layer = layout[key].value & 0x0F; // Mask half byte to get layer
+			usb_keyboard_press(0,0);
+		break;
+	}
 }

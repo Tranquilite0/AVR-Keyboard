@@ -389,6 +389,8 @@ int8_t usb_keyboard_send(void)
 }
 
 void jump_bootloader(void) {
+  usb_keyboard_press(0,0); //Make sure there are no stuck keys.
+  _delay_ms(5); //It takes a while for changes to propgate.
   cli();
   UDCON = 1;
   USBCON = (1<<FRZCLK);  // disable USB
